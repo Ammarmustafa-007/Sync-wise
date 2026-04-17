@@ -27,9 +27,9 @@ const navItems = [
 ];
 
 const recentFiles = [
-  { name: "invoice_2024_001.pdf", status: "Completed", date: "2 min ago" },
-  { name: "contract_draft_v2.pdf", status: "Processing", date: "15 min ago" },
-  { name: "quarterly_report.pdf", status: "Completed", date: "1 hour ago" },
+  { name: "Generation1.pdf", status: "Completed", date: "2 min ago" },
+  { name: "Generation2.pdf", status: "Processing", date: "15 min ago" },
+  { name: "Generation3.pdf", status: "Completed", date: "1 hour ago" },
 ];
 
 const Dashboard = () => {

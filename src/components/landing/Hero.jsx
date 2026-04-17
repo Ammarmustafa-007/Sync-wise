@@ -68,8 +68,9 @@ const Hero = () => {
             }}
             className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto"
           >
-            SyncWise parses PDFs and syncs them into clean, usable data
-            instantly. Extract, structure, and export with AI precision.
+           SyncWise intelligently parses university timetable PDFs and converts
+           them into clean, structured schedules. Generate clash-free,
+           personalized timetables instantly
           </motion.p>
 
           {/* CTA Buttons */}
@@ -160,12 +161,12 @@ const Hero = () => {
           }}
           className="mt-20 max-w-5xl mx-auto"
         >
-          <div className="relative rounded-2xl border border-border bg-card p-2 shadow-lifted">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-2xl" />
+          <div className="relative rounded-3xl border border-border bg-card p-2 shadow-lifted mb-5">
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl" />
             <div className="relative rounded-xl bg-muted/50 aspect-[16/9] flex items-center justify-center">
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Upload className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center animate-bounce">
+                  <Upload className="w-8 h-8 text-primary animate-pulse" />
                 </div>
                 <p className="text-muted-foreground">
                   Drag and drop your PDF here

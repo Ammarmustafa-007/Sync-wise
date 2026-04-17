@@ -46,7 +46,7 @@ const HowItWorks = () => {
 
         <div className="mt-16 relative">
           {/* Connection Line */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2" />
+          <div className="hidden  lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2" />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             {steps.map((step, index) => (
@@ -59,10 +59,10 @@ const HowItWorks = () => {
                 className="relative text-center lg:text-left"
               >
                 <div className="relative inline-flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center shadow-soft relative z-10">
+                  <div className="w-20 h-20 rounded-2xl  bg-card border border-border flex items-center justify-center shadow-soft relative z-10">
                     <step.icon className="w-8 h-8 text-primary" />
                   </div>
-                  <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
+                  <span className="absolute z-10 -top-2 -right-2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
                     {step.step}
                   </span>
                 </div>

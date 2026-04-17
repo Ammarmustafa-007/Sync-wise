@@ -25,9 +25,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 flex items-center justify-center overflow-hidden rounded-2xl bg-primary/5 transition-all duration-300 group-hover:bg-primary/10 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+            <div className="relative w-12 h-12 flex items-center justify-center overflow-hidden rounded-xl bg-primary/5 transition-all duration-300 group-hover:bg-primary/10 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
               <img
-                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-full object-center transition-transform duration-500 "
                 src="/third.png"
                 alt="SyncWise Logo Icon"
               />
