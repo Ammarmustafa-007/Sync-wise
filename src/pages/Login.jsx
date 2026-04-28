@@ -71,21 +71,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-muted/30">
-      {/* Box Container - Same consistent size as Signup */}
-      <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex h-[85vh]">
+    <div className="h-screen w-full flex items-center justify-center p-4 bg-muted/30 overflow-hidden">
+      {/* Box Container - Flexible height to prevent squishing */}
+      <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex min-h-[600px] max-h-[90vh]">
         
-        {/* Left Side (Form) - Preserved your structure, applied compact styling */}
-        <div className="flex-1 flex flex-col justify-center px-8 py-6 h-full relative">
+        {/* Left Side (Form) */}
+        <div className="flex-1 flex flex-col justify-center px-8 py-8 relative overflow-y-auto">
           <motion.div
-            initial={{ opacity: 0, x: 20 }} // Sliding from right (opposite of signup)
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md mx-auto flex flex-col justify-center h-full"
+            className="w-full max-w-md mx-auto flex flex-col justify-center"
           >
             {/* Header Section */}
-            <div className="mb-6">
-              <Link to="/" className="flex items-center gap-2 mb-6">
+            <div className="mb-4">
+              <Link to="/" className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                   <FileText className="w-4 h-4 text-primary-foreground" />
                 </div>
@@ -101,7 +101,7 @@ const Login = () => {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-10 gap-2 mb-6"
+              className="w-full h-10 gap-2 mb-4"
               onClick={handleGoogleLogin}
               disabled={loading}
             >
@@ -110,7 +110,7 @@ const Login = () => {
             </Button>
 
             {/* Divider */}
-            <div className="relative mb-6">
+            <div className="relative mb-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
               </div>
@@ -122,7 +122,7 @@ const Login = () => {
             </div>
 
             {/* Form Section */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <div className="space-y-1">
                 <Label htmlFor="email" className="text-xs">Email</Label>
                 <Input
@@ -163,7 +163,7 @@ const Login = () => {
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-muted-foreground">
+            <p className="mt-4 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link
                 to="/signup"

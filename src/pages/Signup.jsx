@@ -80,9 +80,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-muted/30">
-      {/* Box Container - Limited height to ensure margins */}
-      <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex h-[85vh]">
+    <div className="h-screen w-full flex items-center justify-center p-4 bg-muted/30 overflow-hidden">
+      {/* Box Container - Flexible height to prevent squishing */}
+      <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex min-h-[650px] max-h-[90vh]">
         
         {/* Left Side (Image/Decorative) */}
         <div className="hidden lg:flex w-1/2 bg-primary/5 items-center justify-center p-8">
@@ -106,12 +106,12 @@ const Signup = () => {
         </div>
 
         {/* Right Side (Form) */}
-        <div className="flex-1 flex flex-col justify-center px-8 py-6 h-full relative">
+        <div className="flex-1 flex flex-col justify-center px-8 py-6 relative overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md mx-auto flex flex-col justify-center h-full"
+            className="w-full max-w-md mx-auto flex flex-col justify-center"
           >
             {/* Header Section */}
             <div className="mb-4">
