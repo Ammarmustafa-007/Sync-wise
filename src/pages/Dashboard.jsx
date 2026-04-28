@@ -15,8 +15,10 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DownloadSuccess from "../components/DownloadSuccess";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", active: true },
@@ -36,8 +38,21 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [showSuccess, setShowSuccess] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
   const handleDownload = () => {
     setShowSuccess(true);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Successfully signed out");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Failed to sign out");
+    }
   };
 
   return (
@@ -71,7 +86,10 @@ const Dashboard = () => {
         </nav>
 
         <div className="p-4 border-t border-border">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+          <button 
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          >
             <LogOut className="w-5 h-5" />
             Sign out
           </button>
@@ -126,6 +144,16 @@ const Dashboard = () => {
             </button>
           ))}
         </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
+          <button 
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            Sign out
+          </button>
+        </div>
       </aside>
 
       {/* Main content */}

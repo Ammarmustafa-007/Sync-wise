@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, ArrowRight } from "lucide-react";
+import { FileText, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg">
@@ -30,15 +32,42 @@ const GoogleIcon = () => (
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Mock login - redirect to dashboard
-    window.location.href = "/dashboard";
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      
+      toast.success("Successfully logged in");
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message || "Failed to login");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "/dashboard";
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error.message || "Failed to login with Google");
+    }
   };
 
   return (
@@ -74,6 +103,7 @@ const Login = () => {
               variant="outline"
               className="w-full h-10 gap-2 mb-6"
               onClick={handleGoogleLogin}
+              disabled={loading}
             >
               <GoogleIcon />
               <span className="text-sm">Continue with Google</span>
@@ -124,9 +154,12 @@ const Login = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full h-10 mt-2">
+              <Button type="submit" className="w-full h-10 mt-2" disabled={loading}>
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : null}
                 Sign in
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
               </Button>
             </form>
 

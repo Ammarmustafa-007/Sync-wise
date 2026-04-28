@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Upload } from "lucide-react";
+import { ArrowRight, Upload, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+
 const Hero = () => {
+  const { user } = useAuth();
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
       {/* Background decoration */}
@@ -89,15 +92,24 @@ const Hero = () => {
             }}
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Button variant="hero" size="xl" asChild>
-              <Link to="/signup">
-                Get Started Free
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </Button>
+            {user ? (
+              <Button variant="hero" size="xl" asChild>
+                <Link to="/dashboard">
+                  Go to Dashboard
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="hero" size="xl" asChild>
+                <Link to="/signup">
+                  Get Started Free
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+            )}
             <Button variant="hero-outline" size="xl" asChild>
               <Link to="/dashboard">
-                <Upload className="w-5 h-5" />
+                <Upload className="w-5 h-5 mr-2" />
                 Upload PDF
               </Link>
             </Button>

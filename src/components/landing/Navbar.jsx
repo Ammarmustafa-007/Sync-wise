@@ -1,12 +1,27 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, Icon, Menu, X } from "lucide-react";
+import { FileText, Icon, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState(null);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Successfully signed out");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Failed to sign out");
+    }
+  };
+
   const navLinks = [
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
@@ -52,12 +67,29 @@ const Navbar = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button variant="default" asChild>
-              <Link to="/signup">Get Started</Link>
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </Button>
+                <Button variant="default" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Login</Link>
+                </Button>
+                <Button variant="default" asChild>
+                  <Link to="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
             <Button
               variant="default"
               onClick={() => {
@@ -100,15 +132,25 @@ const Navbar = () => {
                   </a>
                 ))}
                 <div className="pt-4 flex flex-col gap-2">
-                  <Button variant="ghost" asChild className="w-full">
-                    <Link to="/login">Login</Link>
-                  </Button>
-                  <Button variant="default" asChild className="w-full">
-                    <Link to="/signup">Get Started</Link>
-                  </Button>
-                  <Button variant="default" asChild className="w-full">
-                    <Link to="/signup">Get Started</Link>
-                  </Button>
+                  {user ? (
+                    <>
+                      <Button variant="ghost" asChild className="w-full">
+                        <Link to="/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                      </Button>
+                      <Button variant="default" onClick={() => { setIsOpen(false); handleSignOut(); }} className="w-full">
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="ghost" asChild className="w-full">
+                        <Link to="/login" onClick={() => setIsOpen(false)}>Login</Link>
+                      </Button>
+                      <Button variant="default" asChild className="w-full">
+                        <Link to="/signup" onClick={() => setIsOpen(false)}>Get Started</Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
