@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { FileText } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Footer = () => {
+  const { user } = useAuth();
   const links = {
     product: [
       { name: "Features", href: "#features" },
@@ -97,18 +99,29 @@ const Footer = () => {
             © 2024 SyncWise. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign Up
-            </Link>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
