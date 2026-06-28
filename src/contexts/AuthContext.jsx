@@ -11,15 +11,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const devRole = localStorage.getItem('dev_role');
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user || null);
+      if (devRole) {
+        setSession({ access_token: 'dev-token' });
+        setUser({ id: 'dev', email: `dev@${devRole}.com`, user_metadata: { role: devRole, full_name: `Dev ${devRole}` } });
+      } else {
+        setSession(session);
+        setUser(session?.user || null);
+      }
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
+      if (!localStorage.getItem('dev_role')) {
+        setSession(session);
+        setUser(session?.user || null);
+      }
       setLoading(false);
     });
 
@@ -30,7 +39,15 @@ export const AuthProvider = ({ children }) => {
     session,
     user,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    devLogin: (role) => {
+      localStorage.setItem('dev_role', role);
+      setSession({ access_token: 'dev-token' });
+      setUser({ id: 'dev', email: `dev@${role}.com`, user_metadata: { role, full_name: `Dev ${role}` } });
+    },
+    signOut: () => {
+      localStorage.removeItem('dev_role');
+      return supabase.auth.signOut();
+    },
   };
 
   return (

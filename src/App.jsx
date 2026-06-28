@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Background3D } from "./components/ui/Background3D";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <Background3D />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

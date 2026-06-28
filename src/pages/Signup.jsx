@@ -46,12 +46,16 @@ const Signup = () => {
     
     setLoading(true);
     try {
+      const isTeacher = email.toLowerCase().includes('.teacher');
+      const role = isTeacher ? 'teacher' : 'student';
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: name,
+            role: role,
           }
         }
       });

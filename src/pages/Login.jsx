@@ -7,6 +7,7 @@ import { FileText, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg">
@@ -33,6 +34,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { devLogin } = useAuth(); // Import devLogin
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -71,7 +73,7 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center p-4 bg-muted/30 overflow-hidden">
+    <div className="h-screen w-full flex items-center justify-center p-4 bg-transparent overflow-hidden">
       {/* Box Container - Flexible height to prevent squishing */}
       <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex min-h-[600px] max-h-[90vh]">
         
@@ -172,6 +174,35 @@ const Login = () => {
                 Sign up
               </Link>
             </p>
+
+            {/* DEV BYPASS BUTTONS */}
+            <div className="mt-8 p-4 border border-border rounded-xl bg-muted/20">
+              <p className="text-xs text-muted-foreground text-center mb-3 font-semibold uppercase tracking-wider">Developer Quick Login</p>
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full text-xs"
+                  onClick={() => {
+                    devLogin('teacher');
+                    navigate('/dashboard');
+                  }}
+                >
+                  Teacher POV
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full text-xs"
+                  onClick={() => {
+                    devLogin('student');
+                    navigate('/dashboard');
+                  }}
+                >
+                  Student POV
+                </Button>
+              </div>
+            </div>
           </motion.div>
         </div>
 
