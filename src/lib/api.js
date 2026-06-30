@@ -90,6 +90,7 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+  acknowledgeProUpgrade: () => fetchWithToken('/student/upgrade/acknowledge', { method: 'POST' }),
   
   // Teacher Actions
   getTeacherSections: () => fetchWithToken('/teacher/sections'),

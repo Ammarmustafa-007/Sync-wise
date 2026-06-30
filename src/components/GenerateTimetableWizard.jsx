@@ -319,6 +319,26 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
           <motion.div initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} className="space-y-6">
             <h2 className="text-2xl font-bold">Step 1: Select Data Source</h2>
             
+            {proStatus === 'approved' && isPro && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl flex items-start gap-3 relative">
+                <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold">Pro Upgrade Approved!</h3>
+                  <p className="text-sm mt-1">Your request has been approved by the admin. You can now use the Personal PDF parser anytime to generate your personal schedule.</p>
+                </div>
+                <button 
+                  className="absolute top-4 right-4 text-emerald-500/60 hover:text-emerald-500"
+                  onClick={() => {
+                    api.acknowledgeProUpgrade().catch(console.error);
+                    setProStatus('none');
+                  }}
+                >
+                  <span className="sr-only">Dismiss</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-4 mb-8">
               <button 
                 onClick={() => setSourceType('university')} 
