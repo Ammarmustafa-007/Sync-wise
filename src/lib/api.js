@@ -86,6 +86,10 @@ export const api = {
     body: JSON.stringify({ slot_ids: slotIds })
   }),
   getMySchedule: () => fetchWithToken('/student/schedule'),
+  requestProUpgrade: (data) => fetchWithToken('/student/upgrade/request', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
   
   // Teacher Actions
   getTeacherSections: () => fetchWithToken('/teacher/sections'),

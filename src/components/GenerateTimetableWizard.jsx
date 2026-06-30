@@ -6,11 +6,31 @@ import { Sparkles, ArrowRight, CheckCircle2, AlertTriangle, ArrowLeft, UploadClo
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import ProUpgradeModal from './ProUpgradeModal';
+
 const GenerateTimetableWizard = ({ setActiveNav }) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [sourceType, setSourceType] = useState('university'); // 'university' or 'personal'
-  const [isPro, setIsPro] = useState(true); // Mocking Pro status for UI
+  const [isPro, setIsPro] = useState(false);
+  const [proStatus, setProStatus] = useState('none');
+  const [isProModalOpen, setIsProModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.id && user.id !== 'dev') {
+      supabase.from('users').select('plan, pro_request_status').eq('id', user.id).single().then(({ data }) => {
+        if (data) {
+          setIsPro(data.plan === 'pro');
+          setProStatus(data.pro_request_status || 'none');
+        }
+      });
+    } else if (user?.id === 'dev') {
+      setIsPro(true); // Dev mode is always pro
+    }
+  }, [user]);
 
   // Step 1: Institution (University Database)
   const [uniId, setUniId] = useState('');
@@ -312,7 +332,11 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
               <button 
                 onClick={() => {
                   if (!isPro) {
-                    toast.error('Please upgrade to Pro to use the Personal Parser');
+                    if (proStatus === 'pending') {
+                      toast.info('Your Pro upgrade request is pending review by an admin.');
+                    } else {
+                      setIsProModalOpen(true);
+                    }
                     return;
                   }
                   setSourceType('personal');
@@ -787,6 +811,15 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
           </motion.div>
         )}
       </div>
+      
+      <ProUpgradeModal 
+        isOpen={isProModalOpen} 
+        onClose={() => setIsProModalOpen(false)} 
+        onSuccess={() => {
+          setIsProModalOpen(false);
+          setProStatus('pending');
+        }} 
+      />
     </div>
   );
 };
