@@ -85,19 +85,19 @@ export const AuthProvider = ({ children }) => {
       
       {/* Full Screen Red Error Modal */}
       {authError && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-destructive text-destructive-foreground rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
-                <AlertCircle className="w-8 h-8 text-white" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-red-600 text-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-red-500">
+            <div className="p-8 flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6">
+                <AlertCircle className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">{authError.title}</h2>
-              <p className="text-destructive-foreground/90 text-sm mb-6 leading-relaxed">
+              <h2 className="text-3xl font-bold mb-3">{authError.title}</h2>
+              <p className="text-red-50 text-base mb-8 leading-relaxed font-medium">
                 {authError.message}
               </p>
               <Button 
-                variant="secondary" 
-                className="w-full font-semibold"
+                variant="outline" 
+                className="w-full font-bold text-red-600 bg-white hover:bg-red-50 border-white h-12 text-lg"
                 onClick={() => setAuthError(null)}
               >
                 Understood, take me back
