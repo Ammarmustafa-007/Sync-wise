@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreditCard, Lock, Loader2, Building, ShieldCheck } from 'lucide-react';
+import { CreditCard, Lock, Loader2, Building, ShieldCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -7,9 +7,8 @@ import { api } from '@/lib/api';
 
 export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'bank'
+  const [paymentMethod, setPaymentMethod] = useState('card');
   
-  // Card Form State
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
@@ -32,9 +31,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
       }
 
       await api.requestProUpgrade({ pin: pinToSend });
-      toast.success("Payment processed successfully. Request sent to admin for review.", {
-        duration: 5000,
-      });
+      toast.success("Payment processed successfully. Request sent to admin for review.");
       onSuccess(); 
     } catch (error) {
       toast.error(error.message || "Card declined. Please check your details and try again.");
@@ -62,61 +59,68 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-[440px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-border">
-        
-        {/* Stripe-style Header */}
-        <div className="bg-indigo-600 p-6 text-white text-center shrink-0">
-          <div className="mx-auto w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3">
-            <CreditCard className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight">Upgrade to Pro</h2>
-          <p className="text-indigo-100 font-medium text-sm mt-1">
-            Unlock the Personal Timetable Generator
-          </p>
-        </div>
-
-        {/* Scrollable Content with min-h-0 to fix flex overflow */}
-        <div className="p-5 overflow-y-auto min-h-0 flex-1">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm overflow-y-auto">
+      {/* Container to center the modal and allow scrolling if screen is too small */}
+      <div className="min-h-full flex items-center justify-center p-4 py-8">
+        <div className="bg-background rounded-2xl shadow-xl w-full max-w-[420px] animate-in fade-in zoom-in-95 duration-200 border border-border relative">
           
-          {/* Payment Method Selector */}
-          <div className="flex gap-2 p-1 bg-muted rounded-xl mb-5">
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('card')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                paymentMethod === 'card' 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'
-              }`}
-            >
-              <CreditCard className="w-4 h-4" /> Card
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('bank')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                paymentMethod === 'bank' 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'
-              }`}
-            >
-              <Building className="w-4 h-4" /> Bank
-            </button>
+          {/* Close Button */}
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1 rounded-md text-muted-foreground hover:bg-muted transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Clean Header */}
+          <div className="px-6 pt-8 pb-4">
+            <h2 className="text-xl font-bold text-foreground">Upgrade to Pro</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Unlock the Personal Timetable Generator for $10.00
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col h-full">
-            <div className="flex-1">
+          <div className="px-6 pb-6">
+            
+            {/* Tabs */}
+            <div className="flex p-1 bg-muted rounded-lg mb-6">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('card')}
+                className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                  paymentMethod === 'card' 
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <CreditCard className="w-4 h-4" /> Card
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('bank')}
+                className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-md text-sm font-medium transition-all ${
+                  paymentMethod === 'bank' 
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Building className="w-4 h-4" /> Bank
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
               {paymentMethod === 'card' ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                  <div className="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 p-3 rounded-lg text-xs flex gap-2 items-start border border-blue-200 dark:border-blue-500/20">
+                <div className="space-y-4 animate-in fade-in">
+                  
+                  <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 p-2.5 rounded-md text-[13px] flex gap-2 items-start leading-tight">
                     <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                    <p>Testing environment. Use any card ending in <strong>0000</strong> to approve.</p>
+                    <p>Testing environment. Use card ending in <strong>0000</strong> to approve.</p>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Card Number</label>
+                    {/* Card Number */}
+                    <div>
+                      <label className="block text-[13px] font-medium text-foreground mb-1">Card number</label>
                       <div className="relative">
                         <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
@@ -124,41 +128,41 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
                           placeholder="0000 0000 0000 0000"
                           value={cardNumber}
                           onChange={handleCardNumberChange}
-                          className="pl-9 font-mono text-sm h-10"
+                          className="pl-9 h-10 font-mono text-sm"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="flex gap-3">
-                      <div className="space-y-1 flex-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Expiry</label>
+                      <div className="flex-1">
+                        <label className="block text-[13px] font-medium text-foreground mb-1">Expiration</label>
                         <Input
                           type="text"
                           placeholder="MM/YY"
                           value={expiry}
                           onChange={handleExpiryChange}
-                          className="font-mono text-sm h-10"
+                          className="h-10 font-mono text-sm"
                           maxLength={5}
                           required
                         />
                       </div>
-                      <div className="space-y-1 flex-1">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">CVC</label>
+                      <div className="flex-1">
+                        <label className="block text-[13px] font-medium text-foreground mb-1">CVC</label>
                         <Input
                           type="text"
                           placeholder="123"
                           value={cvc}
                           onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                          className="font-mono text-sm h-10"
+                          className="h-10 font-mono text-sm"
                           maxLength={4}
                           required
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name on Card</label>
+                    <div>
+                      <label className="block text-[13px] font-medium text-foreground mb-1">Name on card</label>
                       <Input
                         type="text"
                         placeholder="John Doe"
@@ -171,41 +175,25 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
-                  <div className="p-6 border border-border rounded-xl bg-muted/30 text-center space-y-2">
-                    <Building className="w-8 h-8 mx-auto text-indigo-500" />
-                    <div>
-                      <h3 className="font-semibold text-foreground">Direct Bank Transfer</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Simulate a successful bank transfer checkout.
-                      </p>
-                    </div>
-                  </div>
+                <div className="space-y-4 animate-in fade-in text-center p-6 bg-muted/50 rounded-lg border border-border/50">
+                  <Building className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                  <h3 className="font-medium text-foreground text-sm">Direct Bank Transfer</h3>
+                  <p className="text-[13px] text-muted-foreground">
+                    Click pay to simulate a successful bank transfer.
+                  </p>
                 </div>
               )}
-            </div>
 
-            <div className="mt-6 pt-4 border-t flex gap-3 shrink-0">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-1/3 h-11 rounded-lg"
-                onClick={onClose}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
               <Button
                 type="submit"
-                className="w-2/3 h-11 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="w-full mt-6 h-11 bg-[#0A2540] hover:bg-[#113860] dark:bg-primary dark:hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2 transition-all"
                 disabled={loading || (paymentMethod === 'card' && cardNumber.length < 19)}
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                 {loading ? "Processing..." : "Pay $10.00"}
               </Button>
-            </div>
-          </form>
-          
+            </form>
+          </div>
         </div>
       </div>
     </div>
