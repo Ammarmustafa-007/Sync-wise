@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       // Set the error state instead of using toast
       setAuthError({
         title: "Access Denied",
-        message: "Please login with your university mail (@student.edu.pk or @teacher.uol.edu.pk) to get access to uni data and generate your timetables."
+        message: "This is a university specific platform. Please login with your official university email to get access to your university timetable database and create your hassle-free schedules."
       });
     }
   };
