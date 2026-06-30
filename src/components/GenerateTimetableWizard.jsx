@@ -323,8 +323,8 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
               <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 rounded-xl flex items-start gap-3 relative shadow-sm">
                 <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
                 <div>
-                  <h3 className="font-bold text-emerald-900 dark:text-emerald-300">Pro Upgrade Approved!</h3>
-                  <p className="text-sm mt-1 text-emerald-800/90 dark:text-emerald-100/80">Your request has been approved by the admin. You can now use the Personal PDF parser anytime to generate your personal schedule.</p>
+                  <h3 className="font-bold text-foreground">Pro Upgrade Approved!</h3>
+                  <p className="text-sm mt-1 text-muted-foreground">Your request has been approved by the admin. You can now use the Personal PDF parser anytime to generate your personal schedule.</p>
                 </div>
                 <button 
                   className="absolute top-4 right-4 text-emerald-500/60 hover:text-emerald-500"
