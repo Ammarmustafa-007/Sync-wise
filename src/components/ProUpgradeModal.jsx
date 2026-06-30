@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreditCard, Lock, Loader2, Sparkles, Building, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { CreditCard, Lock, Loader2, Building, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -21,8 +21,6 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      // Determine PIN to send based on card number or bank transfer selection
-      // If card ends in 0000 or if bank transfer is selected, send 0000 (success), else 9999 (failure)
       let pinToSend = '9999'; 
       if (paymentMethod === 'bank') {
         pinToSend = '0000';
@@ -37,7 +35,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
       toast.success("Payment processed successfully. Request sent to admin for review.", {
         duration: 5000,
       });
-      onSuccess(); // Close modal and maybe show a success state
+      onSuccess(); 
     } catch (error) {
       toast.error(error.message || "Card declined. Please check your details and try again.");
     } finally {
@@ -45,7 +43,6 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
-  // Auto-format card number with spaces
   const handleCardNumberChange = (e) => {
     let value = e.target.value.replace(/\D/g, '');
     let formatted = '';
@@ -53,10 +50,9 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
       if (i > 0 && i % 4 === 0) formatted += ' ';
       formatted += value[i];
     }
-    setCardNumber(formatted.slice(0, 19)); // Max 16 digits + 3 spaces
+    setCardNumber(formatted.slice(0, 19)); 
   };
 
-  // Auto-format expiry MM/YY
   const handleExpiryChange = (e) => {
     let value = e.target.value.replace(/\D/g, '');
     if (value.length >= 2) {
@@ -66,33 +62,29 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className="bg-background rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] w-full max-w-[480px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-[440px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-border">
         
-        {/* Header - Premium Look */}
-        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-300 p-6 text-white dark:text-zinc-900 text-center relative overflow-hidden shrink-0">
-          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-          
-          <div className="relative z-10">
-            <div className="mx-auto w-12 h-12 bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-3 shadow-lg border border-white/20 dark:border-black/20">
-              <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
-            </div>
-            <h2 className="text-3xl font-extrabold tracking-tight mb-1">Pro Plan</h2>
-            <p className="text-zinc-300 dark:text-zinc-600 font-medium text-sm">
-              Unlock unlimited Personal Timetable generation
-            </p>
+        {/* Stripe-style Header */}
+        <div className="bg-indigo-600 p-6 text-white text-center shrink-0">
+          <div className="mx-auto w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3">
+            <CreditCard className="w-6 h-6 text-white" />
           </div>
+          <h2 className="text-2xl font-bold tracking-tight">Upgrade to Pro</h2>
+          <p className="text-indigo-100 font-medium text-sm mt-1">
+            Unlock the Personal Timetable Generator
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="p-5 sm:p-6 overflow-y-auto">
+        {/* Scrollable Content with min-h-0 to fix flex overflow */}
+        <div className="p-5 overflow-y-auto min-h-0 flex-1">
           
           {/* Payment Method Selector */}
-          <div className="flex gap-2 p-1 bg-muted rounded-xl mb-6">
+          <div className="flex gap-2 p-1 bg-muted rounded-xl mb-5">
             <button
               type="button"
               onClick={() => setPaymentMethod('card')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 paymentMethod === 'card' 
                   ? 'bg-background text-foreground shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'
@@ -103,99 +95,101 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
             <button
               type="button"
               onClick={() => setPaymentMethod('bank')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 paymentMethod === 'bank' 
                   ? 'bg-background text-foreground shadow-sm' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted-foreground/5'
               }`}
             >
-              <Building className="w-4 h-4" /> Bank Transfer
+              <Building className="w-4 h-4" /> Bank
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            {paymentMethod === 'card' ? (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="bg-blue-500/10 text-blue-600 dark:text-blue-400 p-3 rounded-lg text-xs flex gap-2 items-start">
-                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p>This is a secure testing environment. Use any card number ending in <strong>0000</strong> to simulate a successful payment.</p>
-                </div>
+          <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            <div className="flex-1">
+              {paymentMethod === 'card' ? (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 p-3 rounded-lg text-xs flex gap-2 items-start border border-blue-200 dark:border-blue-500/20">
+                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                    <p>Testing environment. Use any card ending in <strong>0000</strong> to approve.</p>
+                  </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">Card Number</label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Card Number</label>
+                      <div className="relative">
+                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          type="text"
+                          placeholder="0000 0000 0000 0000"
+                          value={cardNumber}
+                          onChange={handleCardNumberChange}
+                          className="pl-9 font-mono text-sm h-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <div className="space-y-1 flex-1">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Expiry</label>
+                        <Input
+                          type="text"
+                          placeholder="MM/YY"
+                          value={expiry}
+                          onChange={handleExpiryChange}
+                          className="font-mono text-sm h-10"
+                          maxLength={5}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1 flex-1">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">CVC</label>
+                        <Input
+                          type="text"
+                          placeholder="123"
+                          value={cvc}
+                          onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          className="font-mono text-sm h-10"
+                          maxLength={4}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name on Card</label>
                       <Input
                         type="text"
-                        placeholder="0000 0000 0000 0000"
-                        value={cardNumber}
-                        onChange={handleCardNumberChange}
-                        className="pl-10 font-mono text-base h-11"
+                        placeholder="John Doe"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="h-10 text-sm"
                         required
                       />
                     </div>
                   </div>
-
-                  <div className="flex gap-4">
-                    <div className="space-y-1.5 flex-1">
-                      <label className="text-sm font-medium text-foreground">Expiry</label>
-                      <Input
-                        type="text"
-                        placeholder="MM/YY"
-                        value={expiry}
-                        onChange={handleExpiryChange}
-                        className="font-mono text-base h-11"
-                        maxLength={5}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-1.5 flex-1">
-                      <label className="text-sm font-medium text-foreground">CVC</label>
-                      <Input
-                        type="text"
-                        placeholder="123"
-                        value={cvc}
-                        onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        className="font-mono text-base h-11"
-                        maxLength={4}
-                        required
-                      />
+                </div>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                  <div className="p-6 border border-border rounded-xl bg-muted/30 text-center space-y-2">
+                    <Building className="w-8 h-8 mx-auto text-indigo-500" />
+                    <div>
+                      <h3 className="font-semibold text-foreground">Direct Bank Transfer</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Simulate a successful bank transfer checkout.
+                      </p>
                     </div>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">Name on Card</label>
-                    <Input
-                      type="text"
-                      placeholder="John Doe"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="h-11"
-                      required
-                    />
-                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-5 animate-in fade-in slide-in-from-left-4 duration-300">
-                <div className="p-5 border border-border rounded-xl bg-accent/30 text-center space-y-3">
-                  <Building className="w-8 h-8 mx-auto text-muted-foreground" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">Direct Bank Transfer</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Proceed with checkout to simulate a successful bank transfer request.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            <div className="mt-8 flex gap-3">
+            <div className="mt-6 pt-4 border-t flex gap-3 shrink-0">
               <Button
                 type="button"
-                variant="ghost"
-                className="w-1/3 h-12 rounded-xl"
+                variant="outline"
+                className="w-1/3 h-11 rounded-lg"
                 onClick={onClose}
                 disabled={loading}
               >
@@ -203,19 +197,15 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
               </Button>
               <Button
                 type="submit"
-                className="w-2/3 h-12 rounded-xl text-base font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-900"
+                className="w-2/3 h-11 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
                 disabled={loading || (paymentMethod === 'card' && cardNumber.length < 19)}
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-4 h-4" />}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                 {loading ? "Processing..." : "Pay $10.00"}
               </Button>
             </div>
           </form>
           
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <Lock className="w-3 h-3" />
-            Payments are securely processed (Simulation)
-          </div>
         </div>
       </div>
     </div>
