@@ -67,15 +67,15 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className="bg-background rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] w-full max-w-[480px] overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-border">
+      <div className="bg-background rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] w-full max-w-[480px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-border">
         
         {/* Header - Premium Look */}
-        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-300 p-8 text-white dark:text-zinc-900 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-300 p-6 text-white dark:text-zinc-900 text-center relative overflow-hidden shrink-0">
           <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
           
           <div className="relative z-10">
-            <div className="mx-auto w-16 h-16 bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 shadow-lg border border-white/20 dark:border-black/20">
-              <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
+            <div className="mx-auto w-12 h-12 bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-3 shadow-lg border border-white/20 dark:border-black/20">
+              <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
             </div>
             <h2 className="text-3xl font-extrabold tracking-tight mb-1">Pro Plan</h2>
             <p className="text-zinc-300 dark:text-zinc-600 font-medium text-sm">
@@ -85,10 +85,10 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* Content */}
-        <div className="p-6 sm:p-8">
+        <div className="p-5 sm:p-6 overflow-y-auto">
           
           {/* Payment Method Selector */}
-          <div className="flex gap-2 p-1 bg-muted rounded-xl mb-8">
+          <div className="flex gap-2 p-1 bg-muted rounded-xl mb-6">
             <button
               type="button"
               onClick={() => setPaymentMethod('card')}
