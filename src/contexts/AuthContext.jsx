@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
 
   const isValidEmail = (email) => {
     if (!email) return false;
-    return email.endsWith('@student.edu.pk') || email.endsWith('@teacher.uol.edu.pk');
+    return email.endsWith('@student.uol.edu.pk') || email.endsWith('@teacher.uol.edu.pk');
   };
 
   const handleSession = async (currentSession) => {
