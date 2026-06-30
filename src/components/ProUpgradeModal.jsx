@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CreditCard, Lock, Loader2, Building, ShieldCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +59,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
     setExpiry(value);
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm overflow-y-auto">
       {/* Container to center the modal and allow scrolling if screen is too small */}
       <div className="min-h-full flex items-center justify-center p-4 py-8">
@@ -198,4 +199,6 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
