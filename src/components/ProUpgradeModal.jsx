@@ -59,7 +59,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm overflow-y-auto">
       {/* Container to center the modal and allow scrolling if screen is too small */}
       <div className="min-h-full flex items-center justify-center p-4 py-8">
         <div className="bg-background rounded-2xl shadow-xl w-full max-w-[420px] animate-in fade-in zoom-in-95 duration-200 border border-border relative">
@@ -186,7 +186,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
 
               <Button
                 type="submit"
-                className="w-full mt-6 h-11 bg-[#0A2540] hover:bg-[#113860] dark:bg-primary dark:hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2 transition-all"
+                className="w-full mt-6 h-11 bg-zinc-900 hover:bg-zinc-800 text-white font-medium flex items-center justify-center gap-2 transition-all"
                 disabled={loading || (paymentMethod === 'card' && cardNumber.length < 19)}
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
