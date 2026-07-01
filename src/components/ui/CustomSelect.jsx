@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function CustomSelect({ value, onChange, options, placeholder, disabled, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,45 +33,34 @@ export function CustomSelect({ value, onChange, options, placeholder, disabled, 
         <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && !disabled && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -5, scale: 0.98, filter: 'blur(4px)' }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute z-50 w-full mt-2 bg-background border border-border/50 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden ring-1 ring-black/5"
-          >
-            <div className="max-h-60 overflow-y-auto custom-scrollbar p-1.5">
-              {!options || options.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-muted-foreground text-center">No options available</div>
-              ) : (
-                options.map((option, idx) => (
-                  <motion.button
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.02 }}
-                    key={option.value}
-                    type="button"
-                    onClick={() => {
-                      onChange(option.value);
-                      setIsOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2.5 text-sm rounded-lg flex items-center justify-between transition-all duration-200 ${
-                      String(value) === String(option.value)
-                        ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary font-bold shadow-inner'
-                        : 'text-foreground/90 hover:bg-muted/80 hover:pl-4'
-                    }`}
-                  >
-                    <span className="truncate">{option.label}</span>
-                    {String(value) === String(option.value) && <Check className="w-4 h-4 text-primary" />}
-                  </motion.button>
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isOpen && !disabled && (
+        <div className="absolute z-50 w-full mt-2 bg-background border border-border/50 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden ring-1 ring-black/5">
+          <div className="max-h-60 overflow-y-auto custom-scrollbar p-1.5">
+            {!options || options.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-muted-foreground text-center">No options available</div>
+            ) : (
+              options.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 text-sm rounded-lg flex items-center justify-between transition-colors duration-150 ${
+                    String(value) === String(option.value)
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary font-bold shadow-inner'
+                      : 'text-foreground/90 hover:bg-muted/80'
+                  }`}
+                >
+                  <span className="truncate">{option.label}</span>
+                  {String(value) === String(option.value) && <Check className="w-4 h-4 text-primary" />}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

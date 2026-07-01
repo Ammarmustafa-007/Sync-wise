@@ -174,11 +174,13 @@ const TeacherDashboard = () => {
   return (
     <div className="min-h-screen bg-transparent text-foreground flex overflow-hidden selection:bg-primary/30">
       {/* Background Effects */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]" />
-        <div className="absolute top-[40%] left-[50%] w-[20%] h-[20%] rounded-full bg-indigo-500/5 blur-[100px]" />
-      </div>
+      <div
+        className="fixed inset-0 z-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 10% 10%, rgba(168, 85, 247, 0.14), transparent 30%), radial-gradient(circle at 92% 88%, rgba(59, 130, 246, 0.12), transparent 34%)",
+        }}
+      />
 
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex flex-col w-72 border-r border-border bg-card/60 backdrop-blur-xl z-20">

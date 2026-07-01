@@ -387,6 +387,8 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
     }
   };
 
+  const controlledSelectedSubjectsForRender = getControlledSelectedSubjects(selectedSubjects);
+
   return (
     <div className={`space-y-8 mx-auto pb-20 ${step === 6 ? 'max-w-7xl' : 'max-w-4xl'}`}>
       {/* Progress Bar */}
@@ -624,13 +626,12 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
             {subjectsLoading && sourceType === 'university' ? (
               <div className="p-8 text-center text-muted-foreground">Loading subjects...</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
-                {activeSubjects.map(sub => {
-                  const controllingTheory = labToTheoryMap[sub.subject];
-                  const isLockedLab = Boolean(controllingTheory);
-                  const controlledSelectedSubjects = getControlledSelectedSubjects(selectedSubjects);
-                  const isSelected = controlledSelectedSubjects.includes(sub.subject);
-                  return (
+	              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+	                {activeSubjects.map(sub => {
+	                  const controllingTheory = labToTheoryMap[sub.subject];
+	                  const isLockedLab = Boolean(controllingTheory);
+	                  const isSelected = controlledSelectedSubjectsForRender.includes(sub.subject);
+	                  return (
                     <button 
                       key={sub.subject}
                       type="button"
