@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -20,12 +19,15 @@ import {
   ArrowRight,
   CheckCircle2,
   CalendarDays,
-  BookOpen
+  BookOpen,
+  Coins,
+  Crown,
+  Zap
 } from "lucide-react";
 import TeacherDashboard from "./TeacherDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 import GenerateTimetableWizard from "@/components/GenerateTimetableWizard";
 import MySchedule from "@/components/MySchedule";
 
@@ -36,16 +38,58 @@ const navItems = [
   { icon: Settings, label: "Settings", active: false },
 ];
 
+const getClientSemesterKey = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const term = now.getMonth() + 1 <= 6 ? 'spring' : 'fall';
+  return `${year}:${term}`;
+};
+
 // MOCK_SCHEDULE removed
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Generate Timetable");
+  const [showPlanNotice, setShowPlanNotice] = useState(false);
+  const [studentPlan, setStudentPlan] = useState(null);
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const isTeacher = user?.user_metadata?.role === 'teacher';
+
+  useEffect(() => {
+    if (!user?.id || isTeacher) return;
+
+    if (user.id === 'dev') {
+      setStudentPlan('pro');
+      return;
+    }
+
+    supabase
+      .from('users')
+      .select('plan')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => setStudentPlan(data?.plan === 'pro' ? 'pro' : 'free'));
+  }, [user?.id, isTeacher]);
+
+  useEffect(() => {
+    if (!studentPlan || !user?.id || isTeacher) return;
+
+    const noticeKey = `semester-token-notice:${user.id}:${getClientSemesterKey()}:${studentPlan}`;
+    if (!sessionStorage.getItem(noticeKey)) {
+      setShowPlanNotice(true);
+    }
+  }, [studentPlan, user?.id, isTeacher]);
+
+  const dismissPlanNotice = () => {
+    if (studentPlan && user?.id) {
+      sessionStorage.setItem(`semester-token-notice:${user.id}:${getClientSemesterKey()}:${studentPlan}`, 'seen');
+    }
+    setShowPlanNotice(false);
+  };
 
   // Route to Teacher Dashboard if role matches
-  if (user?.user_metadata?.role === 'teacher') {
+  if (isTeacher) {
     return <TeacherDashboard />;
   }
 
@@ -61,6 +105,10 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-transparent text-foreground flex overflow-hidden">
+      {showPlanNotice && studentPlan && (
+        <SemesterTokenNotice plan={studentPlan} onClose={dismissPlanNotice} />
+      )}
+
       {/* Background Decor */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-500/10 blur-[120px]" />
@@ -252,6 +300,76 @@ const Dashboard = () => {
 
         </div>
       </main>
+    </div>
+  );
+};
+
+const SemesterTokenNotice = ({ plan, onClose }) => {
+  const isPro = plan === 'pro';
+  const allowance = isPro ? 500 : 100;
+  const cost = 100;
+  const attempts = isPro ? 5 : 1;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className={`w-full max-w-xl overflow-hidden rounded-3xl border bg-white shadow-2xl dark:bg-slate-950 ${isPro ? 'border-amber-400 shadow-amber-500/15' : 'border-emerald-400 shadow-emerald-500/15'}`}
+      >
+        <div className={`h-2 ${isPro ? 'bg-amber-500' : 'bg-emerald-600'}`} />
+        <div className="p-7">
+          <div className="flex items-start gap-4">
+            <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg ${isPro ? 'bg-amber-500 shadow-amber-500/30' : 'bg-emerald-600 shadow-emerald-600/30'}`}>
+              {isPro ? <Crown className="h-7 w-7" /> : <Coins className="h-7 w-7" />}
+            </div>
+            <div>
+              <div className={`mb-2 inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide text-white ${isPro ? 'bg-amber-500' : 'bg-emerald-600'}`}>
+                {isPro ? 'Pro plan active' : 'Free plan active'}
+              </div>
+              <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                {isPro ? 'You have five semester generations ready.' : 'You have one free semester generation.'}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                {isPro
+                  ? 'Your Pro wallet receives 500 tokens every semester. Each schedule generation spends 100 tokens, so you can regenerate quickly if a seat is booked or your section choices change during realtime enrollment.'
+                  : 'Your free wallet receives 100 tokens every semester. Each schedule generation spends 100 tokens, so choose your subjects and preferences carefully before generating.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            <div className="rounded-2xl bg-slate-100 p-4 text-center dark:bg-slate-900">
+              <div className="text-2xl font-black text-slate-950 dark:text-white">{allowance}</div>
+              <div className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-500">semester tokens</div>
+            </div>
+            <div className="rounded-2xl bg-slate-100 p-4 text-center dark:bg-slate-900">
+              <div className="text-2xl font-black text-slate-950 dark:text-white">{cost}</div>
+              <div className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-500">cost per generation</div>
+            </div>
+            <div className="rounded-2xl bg-slate-100 p-4 text-center dark:bg-slate-900">
+              <div className="text-2xl font-black text-slate-950 dark:text-white">{attempts}</div>
+              <div className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-500">attempts left</div>
+            </div>
+          </div>
+
+          <div className={`mt-6 flex items-start gap-3 rounded-2xl p-4 text-sm font-semibold ${isPro ? 'bg-amber-50 text-amber-950 dark:bg-amber-950/30 dark:text-amber-100' : 'bg-emerald-50 text-emerald-950 dark:bg-emerald-950/30 dark:text-emerald-100'}`}>
+            <Zap className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              {isPro
+                ? 'Use regenerations when enrollment pressure changes the best section choice.'
+                : 'Upgrade to Pro when you need fast regenerations during live enrollment.'}
+            </span>
+          </div>
+
+          <button
+            onClick={onClose}
+            className={`mt-6 w-full rounded-2xl px-5 py-4 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 ${isPro ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25' : 'bg-slate-950 hover:bg-slate-800 shadow-slate-950/20'}`}
+          >
+            I understand
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 };

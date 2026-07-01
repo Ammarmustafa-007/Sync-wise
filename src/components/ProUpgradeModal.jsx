@@ -77,11 +77,17 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
           <div className="px-6 pt-8 pb-4">
             <h2 className="text-xl font-bold text-foreground">Upgrade to Pro</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Unlock the Personal Timetable Generator for $10.00
+              Get 500 semester tokens and regenerate your timetable up to five times.
             </p>
           </div>
 
           <div className="px-6 pb-6">
+            <div className="mb-6 rounded-xl border border-amber-600 bg-amber-400 p-4 text-sm text-slate-950 shadow-sm">
+              <div className="font-bold">Built for live enrollment pressure</div>
+              <p className="mt-1 leading-relaxed">
+                If a seat gets booked or a section changes, Pro lets you regenerate quickly with different selections instead of being stuck with one free attempt.
+              </p>
+            </div>
             
             {/* Tabs */}
             <div className="flex p-1 bg-muted rounded-lg mb-6">
@@ -191,7 +197,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onSuccess }) {
                 disabled={loading || (paymentMethod === 'card' && cardNumber.length < 19)}
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
-                {loading ? "Processing..." : "Pay $10.00"}
+                {loading ? "Processing..." : "Pay $10.00 and request Pro"}
               </Button>
             </form>
           </div>

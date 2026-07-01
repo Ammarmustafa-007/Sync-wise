@@ -81,6 +81,14 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+  getTokenStatus: ({ versionId, semesterKey, semesterLabel } = {}) => {
+    const params = new URLSearchParams();
+    if (versionId) params.set('version_id', versionId);
+    if (semesterKey) params.set('semester_key', semesterKey);
+    if (semesterLabel) params.set('semester_label', semesterLabel);
+    const query = params.toString();
+    return fetchWithToken(`/student/tokens/status${query ? `?${query}` : ''}`);
+  },
   enrollSchedule: (slotIds) => fetchWithToken('/student/enroll', {
     method: 'POST',
     body: JSON.stringify({ slot_ids: slotIds })
@@ -101,6 +109,7 @@ export const api = {
   getSectionStudents: (sectionId) => fetchWithToken(`/teacher/section/${sectionId}/students`),
   getTeacherStats: () => fetchWithToken('/teacher/stats'),
   getTeacherSchedule: () => fetchWithToken('/teacher/my-schedule'),
+  getTeacherMakeupOptions: () => fetchWithToken('/teacher/makeup/options'),
   checkMakeupClass: (data) => fetchWithToken('/teacher/makeup/check', {
     method: 'POST',
     body: JSON.stringify(data)

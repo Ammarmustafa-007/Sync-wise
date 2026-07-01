@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const AuthContext = createContext({});
+const DEV_TEACHER_NAME = 'Ms Nimra shafiq';
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -46,8 +47,10 @@ export const AuthProvider = ({ children }) => {
     
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (devRole) {
+        const fullName = devRole === 'teacher' ? DEV_TEACHER_NAME : `Dev ${devRole}`;
+        const email = devRole === 'teacher' ? 'nimra.shafiq@teacher.uol.edu.pk' : `dev@${devRole}.com`;
         setSession({ access_token: 'dev-token' });
-        setUser({ id: 'dev', email: `dev@${devRole}.com`, user_metadata: { role: devRole, full_name: `Dev ${devRole}` } });
+        setUser({ id: 'dev', email, user_metadata: { role: devRole, full_name: fullName } });
       } else {
         handleSession(session);
       }
@@ -70,8 +73,10 @@ export const AuthProvider = ({ children }) => {
     loading,
     devLogin: (role) => {
       localStorage.setItem('dev_role', role);
+      const fullName = role === 'teacher' ? DEV_TEACHER_NAME : `Dev ${role}`;
+      const email = role === 'teacher' ? 'nimra.shafiq@teacher.uol.edu.pk' : `dev@${role}.com`;
       setSession({ access_token: 'dev-token' });
-      setUser({ id: 'dev', email: `dev@${role}.com`, user_metadata: { role, full_name: `Dev ${role}` } });
+      setUser({ id: 'dev', email, user_metadata: { role, full_name: fullName } });
     },
     signOut: () => {
       localStorage.removeItem('dev_role');
