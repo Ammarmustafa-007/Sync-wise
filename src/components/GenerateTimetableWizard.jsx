@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { CustomSelect } from "./ui/CustomSelect";
-import { Sparkles, ArrowRight, CheckCircle2, AlertTriangle, ArrowLeft, UploadCloud, Database, Calendar, Clock, MapPin, Users, Coins, Crown, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2, AlertTriangle, ArrowLeft, Database, Calendar, Clock, MapPin, Users, Coins, Crown, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 
@@ -14,7 +14,6 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [sourceType, setSourceType] = useState('university'); // 'university' or 'personal'
   const [isPro, setIsPro] = useState(false);
   const [proStatus, setProStatus] = useState('none');
   const [isProModalOpen, setIsProModalOpen] = useState(false);
@@ -36,11 +35,6 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
   const [uniId, setUniId] = useState('');
   const [deptId, setDeptId] = useState('');
   const [versionId, setVersionId] = useState('');
-
-  // Step 1b: Personal PDF
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [cachedExpiry, setCachedExpiry] = useState(null);
-  const [timeLeft, setTimeLeft] = useState('');
 
   // Step 2: Semesters
   const [selectedSemesters, setSelectedSemesters] = useState([]);
@@ -68,141 +62,27 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
   const { data: universities = [] } = useQuery({ queryKey: ['universities'], queryFn: api.getUniversities });
   const { data: departments = [] } = useQuery({ queryKey: ['departments', uniId], queryFn: () => api.getDepartments(uniId), enabled: !!uniId });
   const { data: versions = [] } = useQuery({ queryKey: ['versions', deptId], queryFn: () => api.getVersions(deptId), enabled: !!deptId });
-  const { data: dbSemesters = [] } = useQuery({ queryKey: ['semesters', versionId], queryFn: () => api.getSemesters(versionId), enabled: !!versionId && sourceType === 'university' });
+  const { data: dbSemesters = [] } = useQuery({ queryKey: ['semesters', versionId], queryFn: () => api.getSemesters(versionId), enabled: !!versionId });
   
   const { data: dbSubjects = [], isFetching: subjectsLoading } = useQuery({
     queryKey: ['subjects', versionId, selectedSemesters],
     queryFn: () => api.getSubjects(versionId, selectedSemesters),
-    enabled: !!versionId && selectedSemesters.length > 0 && step >= 3 && sourceType === 'university',
+    enabled: !!versionId && selectedSemesters.length > 0 && step >= 3,
   });
 
-  // --- API Queries (Personal PDF) ---
-  const { data: personalSlots = [] } = useQuery({
-    queryKey: ['personal_slots'],
-    enabled: false, // We only read from cache set by mutation
-  });
-
-  // Load cache on mount if exists
-  useEffect(() => {
-    if (sourceType === 'personal') {
-      const cachedStr = localStorage.getItem('personal_slots_cache');
-      if (cachedStr) {
-        try {
-          const cached = JSON.parse(cachedStr);
-          if (Date.now() < cached.expiry) {
-            setCachedExpiry(cached.expiry);
-            queryClient.setQueryData(['personal_slots'], cached.slots);
-          } else {
-            localStorage.removeItem('personal_slots_cache');
-            setCachedExpiry(null);
-            queryClient.setQueryData(['personal_slots'], []);
-          }
-        } catch(e) {}
-      }
-    }
-  }, [sourceType, queryClient]);
-
-  // Timer logic for cached personal slots
-  useEffect(() => {
-    if (!cachedExpiry) return;
-    const interval = setInterval(() => {
-      const diff = cachedExpiry - Date.now();
-      if (diff <= 0) {
-        setCachedExpiry(null);
-        setTimeLeft('');
-        localStorage.removeItem('personal_slots_cache');
-        queryClient.setQueryData(['personal_slots'], []);
-        clearInterval(interval);
-      } else {
-        const mins = Math.floor(diff / 60000);
-        const secs = Math.floor((diff % 60000) / 1000);
-        setTimeLeft(`${mins}m ${secs}s`);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cachedExpiry, queryClient]);
-
-  const parseMutation = useMutation({
-    mutationFn: (file) => api.parsePersonalTimetable(file),
-    onSuccess: (data) => {
-      const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
-      localStorage.setItem('personal_slots_cache', JSON.stringify({ slots: data.slots, expiry }));
-      setCachedExpiry(expiry);
-      queryClient.setQueryData(['personal_slots'], data.slots);
-      setStep(2); // Go to semester selection just like DB flow
-      toast.success('Timetable parsed successfully!');
-    },
-    onError: (err) => toast.error(err.message || 'Failed to parse PDF')
-  });
-
-  // Helper to extract semester from section (e.g. "BSSE-5A" -> 5)
-  const getSemesterNumber = (sectionStr) => {
-    if (!sectionStr) return 99;
-    const match = sectionStr.match(/\d+/g);
-    if (match && match.length > 0) return parseInt(match[match.length - 1], 10);
-    const romanMatch = sectionStr.match(/(?:[- ])?(VIII|VII|VI|IV|V|III|II|I)[A-Z]?$/i);
-    if (romanMatch) {
-      const romanMap = { 'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6, 'VII': 7, 'VIII': 8 };
-      return romanMap[romanMatch[1].toUpperCase()] || 99;
-    }
-    return 99;
-  };
-
-  const personalSemesters = useMemo(() => {
-    if (sourceType !== 'personal' || !personalSlots || personalSlots.length === 0) return [];
-    const sems = {};
-    personalSlots.forEach(slot => {
-      const semNum = getSemesterNumber(slot.section);
-      if (!sems[semNum]) sems[semNum] = new Set();
-      if (slot.subject) sems[semNum].add(slot.subject);
-    });
-    return Object.entries(sems).map(([num, subjectsSet]) => ({
-      semester_number: parseInt(num, 10),
-      subject_count: subjectsSet.size
-    })).sort((a,b) => a.semester_number - b.semester_number);
-  }, [personalSlots, sourceType]);
-
-  // Derived Subjects for Personal PDF
-  const personalSubjects = useMemo(() => {
-    if (sourceType !== 'personal' || !personalSlots || personalSlots.length === 0) return [];
-    const subMap = {};
-    personalSlots.forEach((slot, idx) => {
-      if (!slot.subject) return;
-      const semNum = getSemesterNumber(slot.section);
-      if (selectedSemesters.length > 0 && !selectedSemesters.includes(semNum)) return; // Filter by semester
-
-      if (!subMap[slot.subject]) {
-        subMap[slot.subject] = {
-          subject: slot.subject,
-          is_lab: String(slot.subject).toLowerCase().includes('lab'),
-          available_sections: [],
-          paired_lab: null, // Hard to infer reliably without db, assume null
-        };
-      }
-      let sec = subMap[slot.subject].available_sections.find(s => s.section === slot.section);
-      if (!sec) {
-        sec = { section: slot.section, teacher: slot.teacher?.name || 'Staff', slots: [] };
-        subMap[slot.subject].available_sections.push(sec);
-      }
-      // Give a mock ID based on index since no DB id exists
-      sec.slots.push({ id: idx + 1000000, ...slot });
-    });
-    return Object.values(subMap);
-  }, [personalSlots, sourceType, selectedSemesters]);
-
-  const activeSubjects = sourceType === 'personal' ? personalSubjects : dbSubjects;
-  const activeSemesters = sourceType === 'personal' ? personalSemesters : dbSemesters;
+  const activeSubjects = dbSubjects;
+  const activeSemesters = dbSemesters;
   const tokenQueryKey = useMemo(
-    () => ['schedule_tokens', sourceType, sourceType === 'university' ? versionId || 'no-version' : 'current'],
-    [sourceType, versionId]
+    () => ['schedule_tokens', versionId || 'no-version'],
+    [versionId]
   );
   const {
     data: tokenStatus,
     isFetching: tokenStatusLoading,
   } = useQuery({
     queryKey: tokenQueryKey,
-    queryFn: () => api.getTokenStatus(sourceType === 'university' ? { versionId } : {}),
-    enabled: !!user && (sourceType === 'personal' || !!versionId),
+    queryFn: () => api.getTokenStatus({ versionId }),
+    enabled: !!user && !!versionId,
   });
   const generationCost = tokenStatus?.generation_cost || 100;
   const hasGenerationTokens = !tokenStatus || tokenStatus.tokens_remaining >= generationCost;
@@ -247,11 +127,9 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
   // Pre-select all subjects initially when subjects load
   useEffect(() => {
     if (activeSubjects.length > 0 && selectedSubjects.length === 0) {
-      if (activeSubjects.length <= 12 || sourceType === 'university') {
-        setSelectedSubjects(activeSubjects.map(s => s.subject));
-      }
+      setSelectedSubjects(activeSubjects.map(s => s.subject));
     }
-  }, [activeSubjects, selectedSubjects.length, sourceType]);
+  }, [activeSubjects, selectedSubjects.length]);
 
   // Keep selected subjects and preferences aligned with the currently visible subjects.
   // This prevents stale selections from earlier semester/source changes reaching the resolver.
@@ -300,24 +178,7 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
         clash_priority: clashPriority
       };
 
-      if (sourceType === 'personal') {
-        const teacherMap = {};
-        let teacherIdCounter = 1000000;
-        payload.custom_slots = personalSlots.map((slot, index) => {
-          const tName = (typeof slot.teacher === 'object' ? slot.teacher?.name : slot.teacher) || 'Staff';
-          if (!teacherMap[tName]) teacherMap[tName] = teacherIdCounter++;
-          const tId = teacherMap[tName];
-          return {
-            ...slot,
-            id: index + 1000000,
-            slot_number: slot.slot_number || slot.slot || 0,
-            teacher: { id: tId, name: tName },
-            teacher_id: tId
-          };
-        });
-      } else {
-        payload.version_id = versionId;
-      }
+      payload.version_id = versionId;
 
       return api.generateSchedule(payload);
     },
@@ -380,13 +241,6 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
     });
   };
 
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setSelectedFile(e.dataTransfer.files[0]);
-    }
-  };
-
   const controlledSelectedSubjectsForRender = getControlledSelectedSubjects(selectedSubjects);
 
   return (
@@ -421,7 +275,7 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
       <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-xl relative shadow-sm">
         {step === 1 && (
           <motion.div initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} className="space-y-6">
-            <h2 className="text-2xl font-bold">Step 1: Select Data Source</h2>
+            <h2 className="text-2xl font-bold">Step 1: Select Official Timetable</h2>
             
             {proStatus === 'approved' && isPro && (
               <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 rounded-xl flex items-start gap-3 relative shadow-sm">
@@ -443,144 +297,61 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
               </div>
             )}
 
-            <div className="flex gap-4 mb-8">
-              <button 
-                onClick={() => setSourceType('university')} 
-                className={`flex-1 p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${sourceType === 'university' ? 'border-emerald-500 bg-emerald-500/10 shadow-emerald-500/10' : 'border-border hover:bg-muted/50'}`}
-              >
-                <Database className={`w-6 h-6 ${sourceType === 'university' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
-                <span className={`font-bold ${sourceType === 'university' ? 'text-emerald-500' : 'text-foreground'}`}>University Database</span>
-                <span className="text-xs text-muted-foreground">Use the official university schedule</span>
-              </button>
-
-              <button 
-                onClick={() => {
-                  if (!isPro) {
-                    if (proStatus === 'pending') {
-                      toast.info('Your Pro upgrade request is pending review by an admin.');
-                    } else {
-                      setIsProModalOpen(true);
-                    }
-                    return;
-                  }
-                  setSourceType('personal');
-                }} 
-                className={`flex-1 p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${sourceType === 'personal' ? 'border-primary bg-primary/10 shadow-primary/10' : 'border-border hover:bg-muted/50'}`}
-              >
-                <div className="flex items-center gap-2">
-                  <UploadCloud className={`w-6 h-6 ${sourceType === 'personal' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <span className="text-[10px] bg-primary text-white px-2 py-0.5 rounded-full font-bold">PRO</span>
+            <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/35 dark:text-emerald-50">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-emerald-600 p-2 text-white shadow-sm">
+                  <Database className="h-5 w-5" />
                 </div>
-                <span className={`font-bold ${sourceType === 'personal' ? 'text-primary' : 'text-foreground'}`}>Personal PDF</span>
-                <span className="text-xs text-muted-foreground">Upload your own unlisted PDF</span>
-              </button>
+                <div>
+                  <h3 className="font-black">Official university timetable</h3>
+                  <p className="mt-1 text-sm font-medium opacity-80">
+                    Schedule generation now uses verified admin-uploaded timetable versions and your semester token wallet.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {sourceType === 'university' ? (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="space-y-2 relative z-30">
-                  <label className="text-sm font-medium text-muted-foreground">University</label>
-                  <CustomSelect 
-                    value={uniId} 
-                    onChange={(val) => setUniId(val)}
-                    placeholder="Select University..."
-                    options={universities?.map(u => ({ label: u.name, value: u.id }))}
-                  />
-                </div>
-
-                <div className="space-y-2 relative z-20">
-                  <label className="text-sm font-medium text-muted-foreground">Department</label>
-                  <CustomSelect 
-                    value={deptId} 
-                    onChange={(val) => setDeptId(val)}
-                    placeholder="Select Department..."
-                    disabled={!uniId}
-                    options={departments?.map(d => ({ label: d.name, value: d.id }))}
-                  />
-                </div>
-
-                <div className="space-y-2 relative z-10">
-                  <label className="text-sm font-medium text-muted-foreground">Timetable Version</label>
-                  <CustomSelect 
-                    value={versionId} 
-                    onChange={(val) => setVersionId(val)}
-                    placeholder="Select Version..."
-                    disabled={!deptId}
-                    options={versions?.map(v => ({ label: `${v.semester_label} - ${v.version_label} ${v.is_latest ? '(Latest)' : ''}`, value: v.id }))}
-                  />
-                </div>
-
-                <button 
-                  disabled={!versionId} 
-                  onClick={() => setStep(2)}
-                  className="mt-6 w-full py-4 bg-foreground text-background rounded-xl font-bold hover:bg-foreground/90 disabled:opacity-50 flex justify-center items-center gap-2"
-                >
-                  Next Step <ArrowRight className="w-4 h-4" />
-                </button>
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="space-y-2 relative z-30">
+                <label className="text-sm font-medium text-muted-foreground">University</label>
+                <CustomSelect 
+                  value={uniId} 
+                  onChange={(val) => setUniId(val)}
+                  placeholder="Select University..."
+                  options={universities?.map(u => ({ label: u.name, value: u.id }))}
+                />
               </div>
-            ) : (
-              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleFileDrop}
-                  className="border-2 border-dashed border-primary/50 bg-primary/5 rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-primary/10 transition-colors"
-                >
-                  {cachedExpiry && (
-                    <div className="w-full max-w-md p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl mb-6 text-center animate-in fade-in zoom-in duration-300">
-                      <div className="flex justify-center items-center gap-2 text-emerald-500 mb-1">
-                        <CheckCircle2 className="w-5 h-5" />
-                        <span className="font-bold">Recent Timetable Cached</span>
-                      </div>
-                      <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-4 font-medium">
-                        Your recently parsed timetable is available for <span className="font-bold tabular-nums bg-emerald-500/20 px-1.5 py-0.5 rounded">{timeLeft}</span>.
-                      </p>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setStep(2);
-                        }}
-                        className="px-6 py-2 bg-emerald-500 text-white rounded-lg font-bold text-sm hover:bg-emerald-600 transition-all shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 mx-auto"
-                      >
-                        Use Cached Timetable & Continue <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
 
-                  <UploadCloud className="w-10 h-10 text-primary mb-4" />
-                  <h3 className="font-bold text-lg mb-1">{cachedExpiry ? 'Or parse a new PDF' : 'Drag and drop your PDF here'}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">or click below to browse</p>
-                  <input 
-                    type="file" 
-                    id="personal-pdf" 
-                    accept="application/pdf" 
-                    className="hidden" 
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        setSelectedFile(e.target.files[0]);
-                      }
-                    }}
-                  />
-                  <label htmlFor="personal-pdf" className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium cursor-pointer">
-                    Browse Files
-                  </label>
-
-                  {selectedFile && (
-                    <div className="mt-6 p-3 bg-background/50 backdrop-blur rounded-xl border border-border w-full flex items-center justify-between">
-                      <span className="text-sm font-medium truncate max-w-[200px]">{selectedFile.name}</span>
-                      <span className="text-xs text-emerald-500 font-bold bg-emerald-500/10 px-2 py-1 rounded">Ready</span>
-                    </div>
-                  )}
-                </div>
-
-                <button 
-                  disabled={!selectedFile || parseMutation.isPending} 
-                  onClick={() => parseMutation.mutate(selectedFile)}
-                  className="mt-6 w-full py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 disabled:opacity-50 flex justify-center items-center gap-2 shadow-primary/20 shadow-lg"
-                >
-                  {parseMutation.isPending ? 'Parsing Document...' : 'Upload & Parse PDF'} <ArrowRight className="w-4 h-4" />
-                </button>
+              <div className="space-y-2 relative z-20">
+                <label className="text-sm font-medium text-muted-foreground">Department</label>
+                <CustomSelect 
+                  value={deptId} 
+                  onChange={(val) => setDeptId(val)}
+                  placeholder="Select Department..."
+                  disabled={!uniId}
+                  options={departments?.map(d => ({ label: d.name, value: d.id }))}
+                />
               </div>
-            )}
+
+              <div className="space-y-2 relative z-10">
+                <label className="text-sm font-medium text-muted-foreground">Timetable Version</label>
+                <CustomSelect 
+                  value={versionId} 
+                  onChange={(val) => setVersionId(val)}
+                  placeholder="Select Version..."
+                  disabled={!deptId}
+                  options={versions?.map(v => ({ label: `${v.semester_label} - ${v.version_label} ${v.is_latest ? '(Latest)' : ''}`, value: v.id }))}
+                />
+              </div>
+
+              <button 
+                disabled={!versionId} 
+                onClick={() => setStep(2)}
+                className="mt-6 w-full py-4 bg-foreground text-background rounded-xl font-bold hover:bg-foreground/90 disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                Next Step <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -623,7 +394,7 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
             <h2 className="text-2xl font-bold">Step 3: Select Subjects</h2>
             <p className="text-muted-foreground">Deselect any subjects you are NOT taking.</p>
             
-            {subjectsLoading && sourceType === 'university' ? (
+            {subjectsLoading ? (
               <div className="p-8 text-center text-muted-foreground">Loading subjects...</div>
             ) : (
 	              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -662,7 +433,7 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
             )}
 
             <div className="flex gap-4 mt-6">
-              <button onClick={() => setStep(sourceType === 'personal' ? 1 : 2)} className="px-6 py-4 bg-muted text-foreground rounded-xl font-bold hover:bg-muted/80">Back</button>
+              <button onClick={() => setStep(2)} className="px-6 py-4 bg-muted text-foreground rounded-xl font-bold hover:bg-muted/80">Back</button>
               <button 
                 disabled={selectedSubjects.length === 0} 
                 onClick={() => setStep(4)}
@@ -946,10 +717,10 @@ const GenerateTimetableWizard = ({ setActiveNav }) => {
                   </button>
                   <button 
                     onClick={() => enrollMutation.mutate()}
-                    disabled={enrollMutation.isPending || sourceType === 'personal'}
+                    disabled={enrollMutation.isPending}
                     className="flex-1 py-4 bg-foreground text-background rounded-xl font-bold hover:bg-foreground/90 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 transition-all"
                   >
-                    {sourceType === 'personal' ? 'Cannot Save Personal PDF (View Only)' : (enrollMutation.isPending ? 'Saving...' : 'Confirm & Save Schedule')} {sourceType !== 'personal' && <CheckCircle2 className="w-5 h-5" />}
+                    {enrollMutation.isPending ? 'Saving...' : 'Confirm & Save Schedule'} <CheckCircle2 className="w-5 h-5" />
                   </button>
                 </div>
               </>

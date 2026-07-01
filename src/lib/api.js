@@ -52,31 +52,6 @@ export const api = {
   getSubjects: (versionId, semesters) => fetchWithToken(`/timetable/subjects?version_id=${versionId}&semesters=${semesters.join(',')}`),
   
   // Student Actions
-  parsePersonalTimetable: async (file) => {
-    let token = 'dev-token';
-    try {
-      const rawStorage = localStorage.getItem('sb-wsnofhztukhhoztjbkfy-auth-token');
-      if (rawStorage) {
-        const parsed = JSON.parse(rawStorage);
-        if (parsed.access_token) token = parsed.access_token;
-      }
-    } catch (e) {}
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${API_URL}/student/parse-personal`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: formData
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || err.message || `API Error: ${response.status}`);
-    }
-    return response.json();
-  },
   generateSchedule: (data) => fetchWithToken('/student/schedules/generate', {
     method: 'POST',
     body: JSON.stringify(data)
