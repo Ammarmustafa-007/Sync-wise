@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -28,6 +29,7 @@ import TeacherDashboard from "./TeacherDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import GenerateTimetableWizard from "@/components/GenerateTimetableWizard";
 import MySchedule from "@/components/MySchedule";
 
@@ -45,16 +47,41 @@ const getClientSemesterKey = () => {
   return `${year}:${term}`;
 };
 
-// MOCK_SCHEDULE removed
+const formatDateTime = (value) => {
+  if (!value) return 'No upload yet';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'No upload yet';
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+
+const updateToneClass = (tone) => {
+  if (tone === 'amber') return 'bg-amber-500';
+  if (tone === 'blue') return 'bg-blue-500';
+  return 'bg-emerald-500';
+};
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState("Generate Timetable");
+  const [activeNav, setActiveNav] = useState("Overview");
   const [showPlanNotice, setShowPlanNotice] = useState(false);
   const [studentPlan, setStudentPlan] = useState(null);
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const isTeacher = user?.user_metadata?.role === 'teacher';
+  const {
+    data: overview,
+    isLoading: overviewLoading,
+    error: overviewError,
+  } = useQuery({
+    queryKey: ['studentOverview'],
+    queryFn: api.getStudentOverview,
+    enabled: !!user && !isTeacher,
+  });
 
   useEffect(() => {
     if (!user?.id || isTeacher) return;
@@ -102,6 +129,12 @@ const Dashboard = () => {
       toast.error("Failed to sign out");
     }
   };
+
+  const institution = overview?.institution || {};
+  const connectedUniversity = institution.current_university;
+  const departments = overview?.departments || [];
+  const upcomingClasses = overview?.schedule?.upcoming_classes || [];
+  const recentUpdates = overview?.recent_updates || [];
 
   return (
     <div className="min-h-screen bg-transparent text-foreground flex overflow-hidden">
@@ -208,7 +241,12 @@ const Dashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6"
             >
-              {/* Admin Uploaded Data Details */}
+              {overviewError && (
+                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-500">
+                  Could not load live overview: {overviewError.message}
+                </div>
+              )}
+
               <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
                 
@@ -216,7 +254,7 @@ const Dashboard = () => {
                   <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
                     <Building className="w-6 h-6 text-emerald-500" />
                   </div>
-                  Institution Sync Status
+                  Live Institution Sync
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
@@ -224,69 +262,127 @@ const Dashboard = () => {
                     <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                       <GraduationCap className="w-4 h-4" /> University Connected
                     </div>
-                    <div className="text-lg font-bold text-foreground">NUST Islamabad</div>
-                    <div className="text-xs text-emerald-500 mt-1 font-medium bg-emerald-500/10 inline-block px-2 py-0.5 rounded-md">Verified</div>
+                    <div className="text-lg font-bold text-foreground">
+                      {overviewLoading ? 'Loading...' : connectedUniversity?.name || 'Not assigned'}
+                    </div>
+                    <div className="text-xs text-emerald-500 mt-1 font-medium bg-emerald-500/10 inline-block px-2 py-0.5 rounded-md">
+                      {institution.connected_universities_count || 0} live universities
+                    </div>
                   </div>
 
                   <div className="p-6 rounded-2xl bg-muted/40 border border-border">
                     <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" /> Department
+                      <BookOpen className="w-4 h-4" /> Departments
                     </div>
-                    <div className="text-lg font-bold text-foreground">Computer Science</div>
-                    <div className="text-xs text-emerald-500 mt-1 font-medium bg-emerald-500/10 inline-block px-2 py-0.5 rounded-md">Synced</div>
+                    <div className="text-3xl font-black text-foreground">
+                      {overviewLoading ? '--' : institution.departments_count || 0}
+                      <span className="text-sm font-medium text-muted-foreground ml-2">Synced</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 font-medium">
+                      {departments.slice(0, 2).map(dept => dept.code || dept.name).join(', ') || 'No departments yet'}
+                    </div>
                   </div>
 
                   <div className="p-6 rounded-2xl bg-muted/40 border border-border">
                     <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4" /> Timetables Processed
                     </div>
-                    <div className="text-3xl font-black text-foreground">14<span className="text-sm font-medium text-muted-foreground ml-2">Versions</span></div>
-                    <div className="text-xs text-muted-foreground mt-1 font-medium">Latest parsed 2 hours ago</div>
+                    <div className="text-3xl font-black text-foreground">
+                      {overviewLoading ? '--' : institution.timetable_versions_count || 0}
+                      <span className="text-sm font-medium text-muted-foreground ml-2">Versions</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 font-medium">
+                      Latest parsed {formatDateTime(institution.latest_upload?.uploaded_at)}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Today's Snapshot */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 {/* Next Class Widget */}
-                 <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-md relative overflow-hidden">
-                    <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-emerald-500" /> Next Class
-                    </h3>
-                    <div className="p-5 rounded-2xl bg-muted/50 border border-border flex flex-col gap-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-foreground">Database Systems (CS-4A)</span>
-                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold rounded-full">In 45 mins</span>
+              <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
+                <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-md relative overflow-hidden">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-emerald-500" /> Department Timetable Status
+                  </h3>
+                  <div className="space-y-3">
+                    {overviewLoading ? (
+                      <div className="p-5 rounded-2xl bg-muted/30 border border-border text-sm text-muted-foreground">Loading departments...</div>
+                    ) : departments.length === 0 ? (
+                      <div className="p-5 rounded-2xl bg-muted/30 border border-border text-sm text-muted-foreground">No departments are connected yet.</div>
+                    ) : departments.slice(0, 5).map(dept => (
+                      <div key={dept.id} className="p-4 rounded-2xl bg-muted/30 border border-border flex items-center justify-between gap-4">
+                        <div>
+                          <div className="font-bold text-foreground">{dept.name}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {dept.latest_version
+                              ? `${dept.latest_version.semester_label} · ${dept.latest_version.version_label || 'Version'}`
+                              : 'No timetable uploaded yet'}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className={`text-xs font-black px-2.5 py-1 rounded-full ${dept.latest_version ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'}`}>
+                            {dept.latest_version ? 'Live' : 'Pending'}
+                          </div>
+                          {dept.latest_version && (
+                            <div className="text-[10px] text-muted-foreground mt-1">
+                              {dept.latest_version.slots_count} slots
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-4 mt-2">
-                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Room 302, Block A</span>
-                        <span className="flex items-center gap-1"><Users className="w-4 h-4" /> Prof. Ahmed</span>
-                      </div>
-                    </div>
-                 </div>
+                    ))}
+                  </div>
+                </div>
 
-                 {/* Announcements / Updates */}
-                 <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-md relative overflow-hidden">
-                    <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-yellow-500" /> Recent Updates
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="p-4 rounded-xl bg-muted/30 border border-border flex items-start gap-3">
-                        <div className="w-2 h-2 mt-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        <div>
-                          <div className="text-sm font-medium text-foreground">Makeup class scheduled</div>
-                          <div className="text-xs text-muted-foreground mt-1">SE-3B lab has been moved to Friday 2:00 PM.</div>
+                <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-md relative overflow-hidden">
+                  <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-emerald-500" /> Upcoming Classes
+                  </h3>
+                  <div className="space-y-3">
+                    {overviewLoading ? (
+                      <div className="p-5 rounded-2xl bg-muted/30 border border-border text-sm text-muted-foreground">Checking your saved schedule...</div>
+                    ) : upcomingClasses.length === 0 ? (
+                      <div className="p-5 rounded-2xl bg-muted/30 border border-border text-sm text-muted-foreground">
+                        No saved classes yet. Generate and save your timetable to see upcoming classes here.
+                      </div>
+                    ) : upcomingClasses.map(slot => (
+                      <div key={`${slot.id}-${slot.day}-${slot.start_time}`} className="p-4 rounded-2xl bg-muted/30 border border-border">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="font-bold text-foreground">{slot.subject} <span className="text-muted-foreground font-medium">({slot.section})</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">{slot.day} · {slot.time_label}</div>
+                          </div>
+                          <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold rounded-full shrink-0">{slot.starts_in}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-3 mt-3">
+                          <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {slot.room || 'TBA'}</span>
+                          <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {slot.teacher?.name || 'Staff'}</span>
                         </div>
                       </div>
-                      <div className="p-4 rounded-xl bg-muted/30 border border-border flex items-start gap-3">
-                        <div className="w-2 h-2 mt-1.5 rounded-full bg-blue-500 shrink-0" />
-                        <div>
-                          <div className="text-sm font-medium text-foreground">Timetable V3 Published</div>
-                          <div className="text-xs text-muted-foreground mt-1">Admin uploaded a new version 2 hours ago. Clashes resolved.</div>
-                        </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-md relative overflow-hidden">
+                <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-yellow-500" /> Recent Updates
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {overviewLoading ? (
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border text-sm text-muted-foreground">Loading recent updates...</div>
+                  ) : recentUpdates.length === 0 ? (
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border text-sm text-muted-foreground">No recent timetable updates yet.</div>
+                  ) : recentUpdates.map(update => (
+                    <div key={update.id} className="p-4 rounded-xl bg-muted/30 border border-border flex items-start gap-3">
+                      <div className={`w-2 h-2 mt-1.5 rounded-full ${updateToneClass(update.tone)} shrink-0`} />
+                      <div>
+                        <div className="text-sm font-bold text-foreground">{update.title}</div>
+                        <div className="text-xs text-muted-foreground mt-1">{update.description}</div>
+                        <div className="text-[10px] text-muted-foreground mt-2">{formatDateTime(update.timestamp)}</div>
                       </div>
                     </div>
-                 </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}

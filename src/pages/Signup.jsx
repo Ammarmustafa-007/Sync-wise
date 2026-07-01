@@ -1,9 +1,7 @@
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { FileText, ArrowRight, Loader2 } from "lucide-react";
+import { FileText, GraduationCap, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -30,46 +28,10 @@ const GoogleIcon = () => (
 );
 
 const Signup = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const isTeacher = email.toLowerCase().includes('.teacher');
-      const role = isTeacher ? 'teacher' : 'student';
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            role: role,
-          }
-        }
-      });
-      if (error) throw error;
-      toast.success("Signup successful, you can login now");
-      navigate("/login");
-    } catch (error) {
-      toast.error(error.message || "Failed to sign up");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleSignup = async () => {
+    setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -80,13 +42,14 @@ const Signup = () => {
       if (error) throw error;
     } catch (error) {
       toast.error(error.message || "Failed to sign up with Google");
+      setLoading(false);
     }
   };
 
   return (
     <div className="h-screen w-full flex items-center justify-center p-4 bg-muted/30 overflow-hidden">
       {/* Box Container - Flexible height to prevent squishing */}
-      <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex min-h-[650px] max-h-[90vh]">
+      <div className="w-full max-w-5xl bg-background rounded-2xl shadow-xl border overflow-hidden flex min-h-[620px] max-h-[90vh]">
         
         {/* Left Side (Image/Decorative) */}
         <div className="hidden lg:flex w-1/2 bg-primary/5 items-center justify-center p-8">
@@ -103,9 +66,29 @@ const Signup = () => {
               Start Timetable Parsing
             </h2>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-              Create your free account to automatically extract
-              course, section, and timing data from university timetable PDFs.
+              SyncWise is a university-controlled platform. Access is limited to
+              students and teachers signing in with their official university Google account.
             </p>
+            <div className="mt-6 grid gap-3 text-left">
+              <div className="rounded-xl border border-primary/20 bg-background/70 p-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  No anonymous accounts
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Personal/random emails are rejected after Google authentication.
+                </p>
+              </div>
+              <div className="rounded-xl border border-primary/20 bg-background/70 p-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <GraduationCap className="h-4 w-4 text-primary" />
+                  University verified
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Use accounts like @student.uol.edu.pk or @teacher.uol.edu.pk.
+                </p>
+              </div>
+            </div>
           </motion.div>
         </div>
 
@@ -127,98 +110,39 @@ const Signup = () => {
               </Link>
               <h1 className="text-2xl font-bold text-foreground">Create account</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Get started with your free account
+                Continue with your official university Google account.
               </p>
             </div>
 
-            {/* Google Button */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-10 gap-2 mb-4"
-              onClick={handleGoogleSignup}
-              disabled={loading}
-            >
-              <GoogleIcon />
-              <span className="text-sm">Google</span>
-            </Button>
-
-            {/* Divider */}
-            <div className="relative mb-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or
-                </span>
+            <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-800 dark:bg-amber-950/35 dark:text-amber-50">
+              <div className="flex items-start gap-3">
+                <MailCheck className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <h2 className="text-sm font-black">University email required</h2>
+                  <p className="mt-1 text-xs font-medium leading-relaxed opacity-85">
+                    You can only access SyncWise through the Google account issued or approved by your university. Random Gmail accounts and personal emails are not allowed.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Form Section */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="name" className="text-xs">Full name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="h-10"
-                />
-              </div>
+            <Button
+              type="button"
+              className="w-full h-12 gap-2 text-base font-bold"
+              onClick={handleGoogleSignup}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+              Continue with Google
+            </Button>
 
-              <div className="space-y-1">
-                <Label htmlFor="email" className="text-xs">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-10"
-                />
+            <div className="mt-5 rounded-2xl border border-border bg-muted/30 p-4">
+              <h3 className="text-sm font-bold text-foreground">Allowed emails</h3>
+              <div className="mt-3 grid gap-2 text-xs font-medium text-muted-foreground">
+                <div className="rounded-lg bg-background/70 px-3 py-2">@student.uol.edu.pk for students</div>
+                <div className="rounded-lg bg-background/70 px-3 py-2">@teacher.uol.edu.pk for teachers</div>
               </div>
-
-              {/* Grid for Passwords to save vertical space */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="password" className="text-xs">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-10"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="confirmPassword" className="text-xs">Confirm</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="h-10"
-                  />
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full h-10 mt-2" disabled={loading}>
-                {loading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Create account
-                {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
-              </Button>
-            </form>
+            </div>
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Already have an account?{" "}

@@ -1,9 +1,7 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { FileText, ArrowRight, Loader2 } from "lucide-react";
+import { FileText, Loader2, MailCheck, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -31,34 +29,12 @@ const GoogleIcon = () => (
 );
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { devLogin } = useAuth(); // Import devLogin
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-      
-      toast.success("Successfully logged in");
-      navigate("/");
-    } catch (error) {
-      toast.error(error.message || "Failed to login");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleGoogleLogin = async () => {
+    setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -69,6 +45,7 @@ const Login = () => {
       if (error) throw error;
     } catch (error) {
       toast.error(error.message || "Failed to login with Google");
+      setLoading(false);
     }
   };
 
@@ -95,75 +72,41 @@ const Login = () => {
               </Link>
               <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Sign in to your account to continue
+                Sign in with your official university Google account.
               </p>
             </div>
 
-            {/* Google Button */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-10 gap-2 mb-4"
-              onClick={handleGoogleLogin}
-              disabled={loading}
-            >
-              <GoogleIcon />
-              <span className="text-sm">Continue with Google</span>
-            </Button>
-
-            {/* Divider */}
-            <div className="relative mb-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with email
-                </span>
+            <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-800 dark:bg-amber-950/35 dark:text-amber-50">
+              <div className="flex items-start gap-3">
+                <MailCheck className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <h2 className="text-sm font-black">University email required</h2>
+                  <p className="mt-1 text-xs font-medium leading-relaxed opacity-85">
+                    Access is allowed only through the Google account issued or approved by your university. Random Gmail accounts and personal emails are rejected.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Form Section */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="email" className="text-xs">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-10"
-                />
-              </div>
+            <Button
+              type="button"
+              className="w-full h-12 gap-2 text-base font-bold"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+              Continue with Google
+            </Button>
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-xs">Password</Label>
-                  <a href="#" className="text-xs text-primary hover:underline">
-                    Forgot password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-10"
-                />
+            <div className="mt-5 rounded-2xl border border-border bg-muted/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Protected university access
               </div>
-
-              <Button type="submit" className="w-full h-10 mt-2" disabled={loading}>
-                {loading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Sign in
-                {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
-              </Button>
-            </form>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Allowed domains: @student.uol.edu.pk and @teacher.uol.edu.pk.
+              </p>
+            </div>
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}

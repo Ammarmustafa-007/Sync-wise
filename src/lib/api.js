@@ -68,6 +68,7 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ slot_ids: slotIds })
   }),
+  getStudentOverview: () => fetchWithToken('/student/overview'),
   getMySchedule: () => fetchWithToken('/student/schedule'),
   requestProUpgrade: (data) => fetchWithToken('/student/upgrade/request', {
     method: 'POST',

@@ -1,17 +1,9 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, MapPin, Users, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
-
-const formatTime12Hour = (timeStr) => {
-  if (!timeStr) return '';
-  const [h, m] = timeStr.split(':');
-  let hour = parseInt(h, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  hour = hour % 12 || 12;
-  return `${hour}:${m} ${ampm}`;
-};
+import ScheduleGridCard from './ScheduleGridCard';
 
 const MySchedule = () => {
   const { data: schedule = [], isLoading } = useQuery({
@@ -57,15 +49,15 @@ const MySchedule = () => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-8 rounded-3xl bg-card/40 border border-border backdrop-blur-xl"
+      className="space-y-6 rounded-3xl border border-border bg-card/40 p-4 shadow-sm backdrop-blur-xl sm:p-6"
     >
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-foreground flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
-            <Calendar className="w-6 h-6 text-emerald-500" />
-          </div>
-          Your Weekly Schedule
-        </h2>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-black text-foreground">My Schedule</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The same locked timetable view you confirmed after saving your enrollment.
+          </p>
+        </div>
         <button 
           onClick={exportICS}
           disabled={schedule.length === 0}
@@ -75,31 +67,19 @@ const MySchedule = () => {
         </button>
       </div>
       
-      <div className="space-y-4">
-        {schedule.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground border border-dashed border-border rounded-2xl">
-            No schedule found. Please generate your timetable first.
-          </div>
-        ) : schedule.sort((a,b) => (a.day+a.start_time).localeCompare(b.day+b.start_time)).map((item, idx) => (
-          <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl bg-muted/30 border border-border hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="w-24 text-center">
-                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{item.day.substring(0,3)}</div>
-                <div className="text-sm font-bold text-foreground mt-1">{formatTime12Hour(item.start_time)}</div>
-                <div className="text-xs text-muted-foreground">{formatTime12Hour(item.end_time)}</div>
-              </div>
-              <div className="w-px h-10 bg-border hidden sm:block" />
-              <div>
-                <div className="font-bold text-foreground">{item.subject} <span className="font-normal text-muted-foreground text-sm ml-2">({item.section})</span></div>
-                <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {item.room || 'TBA'}</span>
-                  <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {item.teacher?.name || 'Staff'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {schedule.length === 0 ? (
+        <div className="p-8 text-center text-muted-foreground border border-dashed border-border rounded-2xl">
+          No schedule found. Please generate your timetable first.
+        </div>
+      ) : (
+        <ScheduleGridCard
+          title="Your Locked Weekly Schedule"
+          subtitle="A clean grid view of the timetable saved to your enrollment record."
+          schedule={schedule}
+          scoreLabel="Saved"
+          footerNote="Saved layout is ready for teacher makeup planning"
+        />
+      )}
     </motion.div>
   );
 };

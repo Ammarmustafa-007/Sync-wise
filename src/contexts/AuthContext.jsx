@@ -19,6 +19,12 @@ export const AuthProvider = ({ children }) => {
     return email.endsWith('@student.uol.edu.pk') || email.endsWith('@teacher.uol.edu.pk');
   };
 
+  const isGoogleSession = (currentSession) => {
+    const metadata = currentSession?.user?.app_metadata || {};
+    const providers = Array.isArray(metadata.providers) ? metadata.providers : [];
+    return metadata.provider === 'google' || providers.includes('google');
+  };
+
   const handleSession = async (currentSession) => {
     if (!currentSession) {
       setSession(null);
@@ -26,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    if (isValidEmail(currentSession.user.email)) {
+    if (isGoogleSession(currentSession) && isValidEmail(currentSession.user.email)) {
       setSession(currentSession);
       setUser(currentSession.user);
       setAuthError(null);
@@ -37,7 +43,7 @@ export const AuthProvider = ({ children }) => {
       // Set the error state instead of using toast
       setAuthError({
         title: "Access Denied",
-        message: "This is a university specific platform. Please login with your official university email to get access to your university timetable database and create your hassle-free schedules."
+        message: "SyncWise is restricted to university-approved Google accounts. Please sign in with your official student or teacher email, such as @student.uol.edu.pk or @teacher.uol.edu.pk."
       });
     }
   };
