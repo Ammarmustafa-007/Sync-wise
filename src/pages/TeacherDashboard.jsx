@@ -69,12 +69,18 @@ const TeacherDashboard = () => {
   // Queries
   const { data: stats } = useQuery({
     queryKey: ['teacherStats'],
-    queryFn: api.getTeacherStats
+    queryFn: api.getTeacherStats,
+    enabled: activeNav === 'Overview',
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: makeupOptions, isLoading: optionsLoading } = useQuery({
     queryKey: ['teacherMakeupOptions'],
-    queryFn: api.getTeacherMakeupOptions
+    queryFn: api.getTeacherMakeupOptions,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const semesters = makeupOptions?.semesters || [];
@@ -82,14 +88,9 @@ const TeacherDashboard = () => {
   const selectedSemesterData = semesters.find(sem => String(sem.semester_number) === String(selectedSemester));
   const selectedSubjectData = selectedSemesterData?.subjects?.find(subject => subject.subject === selectedSubject);
   const selectedSlotData = timeSlots.find(slot => slot.value === selectedSlot);
-  const selectedVersionIds = [
-    ...new Set(
-      (selectedSubjectData?.meetings || [])
-        .filter(meeting => selectedSection === 'all' || meeting.section === selectedSection)
-        .map(meeting => meeting.version_id)
-        .filter(Boolean)
-    )
-  ];
+  const selectedVersionIds = selectedSection === 'all'
+    ? (selectedSubjectData?.version_ids || [])
+    : (selectedSubjectData?.section_version_ids?.[selectedSection] || []);
   const totalStudents = makeupResults?.summary?.total_students ?? ((makeupResults?.free_students?.length || 0) + (makeupResults?.busy_students?.length || 0));
   const freeCount = makeupResults?.summary?.free_count ?? (makeupResults?.free_students?.length || 0);
   const busyCount = makeupResults?.summary?.busy_count ?? (makeupResults?.busy_students?.length || 0);
@@ -518,6 +519,11 @@ const TeacherDashboard = () => {
                                   </div>
                                 ))}
                               </div>
+                              {(selectedSubjectData.meeting_count || 0) > (selectedSubjectData.meetings || []).length && (
+                                <div className="text-xs text-muted-foreground">
+                                  Showing {(selectedSubjectData.meetings || []).length} sample meetings from {selectedSubjectData.meeting_count}. Availability check still uses the full selected subject scope.
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-sm text-muted-foreground">
