@@ -3,10 +3,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const fetchWithToken = async (url, options = {}) => {
   // Try to get dev token first, otherwise try standard supabase localstorage token
   let token = 'dev-token'; // Fallback for testing
+  const devRole = localStorage.getItem('dev_role');
   
   try {
-    const rawStorage = localStorage.getItem('sb-wsnofhztukhhoztjbkfy-auth-token');
-    if (rawStorage) {
+    const rawStorage = devRole ? null : localStorage.getItem('sb-wsnofhztukhhoztjbkfy-auth-token');
+    if (!devRole && rawStorage) {
       const parsed = JSON.parse(rawStorage);
       if (parsed.access_token) {
         token = parsed.access_token;
